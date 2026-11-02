@@ -1,0 +1,103 @@
+.pd-hover-btn {
+  /* Pinterest's own "Profil ⌄" board dropdown sits in the card's upper-left
+     corner (~57px tall at 100% zoom), so the download button goes just BELOW
+     it. Very small cards override this in sizeButtonForPin(). */
+  position: absolute !important;
+  top: 64px !important;
+  bottom: auto !important;
+  left: 8px !important;
+  right: auto !important;
+  z-index: 99999 !important;
+
+  /* Pinterest "secondary" button look: light-gray pill, dark text, no shadow. */
+  background: #e9e9e9 !important;
+  color: #111 !important;
+  border: none !important;
+  border-radius: 24px !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  padding: 0 16px !important;
+  min-height: 36px !important;
+  line-height: 36px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  letter-spacing: normal !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  -webkit-font-smoothing: antialiased !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+
+  /* Hidden by default; shown only while the pointer is over the pin
+     (see the :hover rule below). */
+  opacity: 0 !important;
+  /* Invisible button must not steal clicks from the pin underneath. */
+  pointer-events: none !important;
+  transition: opacity 0.12s ease, background-color 0.12s ease !important;
+}
+/* Show the button only while hovering (or keyboard-focusing) the pin. */
+.pd-hover-host:hover > .pd-hover-btn,
+.pd-hover-host:focus-within > .pd-hover-btn,
+div[data-test-id="pin"]:hover > .pd-hover-btn,
+div[data-test-id="pinrep-image"]:hover > .pd-hover-btn,
+.pd-hover-btn:focus-visible {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Pin detail button is positioned once in document coordinates by JS. */
+.pd-pinpage-fixed {
+  position: absolute !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* Same hover / pressed shades Pinterest uses on its secondary buttons. */
+.pd-hover-btn:hover {
+  background: #dadada !important;
+}
+.pd-hover-btn:active {
+  background: #bcbcbc !important;
+}
+/* Accessible focus ring without a shadow (Pinterest-style blue outline). */
+.pd-hover-btn:focus-visible {
+  outline: 2px solid #0074e8 !important;
+  outline-offset: 2px !important;
+}
+
+/* Circular loading state used while a download is starting. */
+.pd-hover-btn.pd-loading,
+.pd-pinpage-fixed.pd-loading {
+  opacity: 1 !important;
+  align-items: center !important;
+  display: inline-flex !important;
+  justify-content: center !important;
+  min-width: 42px !important;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+  pointer-events: none !important;
+  color: transparent !important;
+  font-size: 0 !important;
+}
+.pd-hover-btn.pd-loading::after,
+.pd-pinpage-fixed.pd-loading::after {
+  content: '' !important;
+  box-sizing: border-box !important;
+  width: 16px !important;
+  height: 16px !important;
+  border: 3px solid rgba(17, 17, 17, .18) !important;
+  border-top-color: #111 !important;
+  border-radius: 50% !important;
+  animation: pd-windows-spinner .7s linear infinite !important;
+}
+@keyframes pd-windows-spinner {
+  to { transform: rotate(360deg); }
+}
+
+/* On pin detail pages the main pin has its own button (#pd-pinpage-btn), so
+   hide hover buttons on the main media only — they would cover Pinterest's
+   back arrow. Related-pin cards keep theirs. */
+html.pd-pin-detail-page [data-test-id="pin-detail-media"] .pd-hover-btn,
+html.pd-pin-detail-page [data-test-id="closeup-image"] .pd-hover-btn {
+  display: none !important;
+}

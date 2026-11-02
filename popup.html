@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<link rel="icon" href="data:," />
+<style>
+  /* Pinterest-like palette; follows the browser's light / dark mode. */
+  :root {
+    --bg: #ffffff;
+    --surface: #f6f6f6;
+    --surface-2: #e9e9e9;
+    --surface-3: #dadada;
+    --border: #e4e4e4;
+    --text: #111111;
+    --muted: #6b6b6b;
+    --red: #e60023;
+    --red-hover: #ad081b;
+    --blue: #0074e8;
+    --green: #128a3e;
+    --shadow: 0 1px 2px rgba(0,0,0,.06), 0 4px 14px rgba(0,0,0,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121212;
+      --surface: #1c1c1c;
+      --surface-2: #2b2b2b;
+      --surface-3: #3a3a3a;
+      --border: #2e2e2e;
+      --text: #f1f1f1;
+      --muted: #9a9a9a;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 4px 14px rgba(0,0,0,.3);
+    }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); overflow-x: hidden; }
+  body {
+    width: 380px;
+    color: var(--text);
+    font: 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font: inherit; color: inherit; }
+  button:focus-visible, input:focus-visible, select:focus-visible {
+    outline: 2px solid var(--blue); outline-offset: 2px;
+  }
+
+  /* ---------- Header ---------- */
+  header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 16px 10px;
+  }
+  .logo {
+    width: 32px; height: 32px; border-radius: 50%; flex: none;
+    background: var(--red); color: #fff;
+    display: grid; place-items: center;
+  }
+  .title { flex: 1; min-width: 0; }
+  .title h1 { font-size: 15px; font-weight: 700; letter-spacing: -.01em; }
+  .title small { color: var(--muted); font-size: 11px; }
+
+  /* ---------- Tabs ---------- */
+  .tabs {
+    display: flex; gap: 4px; margin: 0 16px 12px; padding: 4px;
+    background: var(--surface-2); border-radius: 999px;
+  }
+  .tabs button {
+    flex: 1; border: 0; background: transparent; cursor: pointer;
+    padding: 7px 10px; border-radius: 999px; font-weight: 600; color: var(--muted);
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .tabs button[aria-selected="true"] { background: var(--bg); color: var(--text); box-shadow: var(--shadow); }
+  .tabs .pill {
+    min-width: 18px; padding: 0 6px; border-radius: 999px; font-size: 11px; line-height: 18px;
+    background: var(--surface-3); color: var(--text);
+  }
+  .view[hidden] { display: none; }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    border: 0; border-radius: 999px; cursor: pointer; font-weight: 600;
+    padding: 9px 14px; background: var(--surface-2);
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    transition: background-color .12s ease;
+  }
+  .btn:hover:not(:disabled) { background: var(--surface-3); }
+  .btn.primary { background: var(--red); color: #fff; }
+  .btn.primary:hover:not(:disabled) { background: var(--red-hover); }
+  .btn:disabled { opacity: .45; cursor: default; }
+
+  /* ---------- Media view ---------- */
+  .actions { display: flex; gap: 8px; padding: 0 16px; }
+  .actions .btn { flex: 1; }
+  #boardBar { display: none; padding: 8px 16px 0; }
+  #boardBar .btn { width: 100%; }
+  #status { padding: 10px 16px 0; font-size: 12px; color: var(--muted); min-height: 26px; }
+  #grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    padding: 10px 16px 16px; max-height: 330px; overflow-y: auto;
+  }
+  .card {
+    position: relative; border-radius: 16px; overflow: hidden;
+    background: var(--surface); display: flex; flex-direction: column;
+  }
+  .card img, .card video { width: 100%; height: 140px; object-fit: cover; display: block; background: var(--surface-2); }
+  .card .badge {
+    position: absolute; top: 8px; left: 8px;
+    padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: .03em;
+    background: rgba(0,0,0,.65); color: #fff;
+  }
+  .card .badge.video { background: var(--blue); }
+  .card .badge.gif { background: var(--green); }
+  .card .foot { display: flex; align-items: center; gap: 6px; padding: 8px; }
+  .card .dims { flex: 1; font-size: 11px; color: var(--muted); }
+  .card .foot .btn { padding: 6px 12px; font-size: 12px; }
+  .placeholder { height: 140px; display: grid; place-items: center; color: var(--muted); font-size: 11px; text-align: center; padding: 8px; }
+  .empty {
+    grid-column: 1 / -1; text-align: center; color: var(--muted);
+    padding: 36px 16px; border: 1.5px dashed var(--border); border-radius: 16px;
+  }
+  .empty strong { display: block; color: var(--text); font-size: 14px; margin-bottom: 4px; }
+
+  /* ---------- Settings view ---------- */
+  /* Browser popups are at most 600px tall; the lists scroll inside instead. */
+  #settingsView { padding: 0 16px 12px; max-height: 420px; overflow-y: auto; }
+  .group { margin-bottom: 14px; }
+  .group h2 {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--muted); margin: 0 4px 6px;
+  }
+  .panel { background: var(--surface); border-radius: 16px; overflow: hidden; }
+  .row {
+    display: flex; align-items: center; gap: 12px; padding: 11px 14px;
+    border-top: 1px solid var(--border);
+  }
+  .row:first-child { border-top: 0; }
+  .row .label { flex: 1; min-width: 0; }
+  .row .label b { display: block; font-weight: 600; }
+  .row .label span { display: block; color: var(--muted); font-size: 11px; margin-top: 1px; }
+  .row.stack { flex-direction: column; align-items: stretch; gap: 8px; }
+
+  /* Switch */
+  .switch { position: relative; flex: none; width: 40px; height: 24px; }
+  .switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; z-index: 1; }
+  .switch i {
+    position: absolute; inset: 0; border-radius: 999px; background: var(--surface-3);
+    transition: background-color .15s ease; pointer-events: none;
+  }
+  .switch i::after {
+    content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px;
+    border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3);
+    transition: transform .15s ease;
+  }
+  .switch input:checked + i { background: var(--red); }
+  .switch input:checked + i::after { transform: translateX(16px); }
+  .switch input:focus-visible + i { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+  /* Folder input */
+  .path {
+    display: flex; align-items: center; border-radius: 12px; background: var(--bg);
+    border: 1px solid var(--border); overflow: hidden;
+  }
+  .path span { padding: 0 2px 0 10px; color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .path input {
+    flex: 1; min-width: 0; border: 0; background: transparent; color: var(--text);
+    font: inherit; padding: 8px 10px 8px 2px; outline: none;
+  }
+  .path:focus-within { border-color: var(--blue); }
+
+  /* Segmented control */
+  .seg { display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--surface-2); flex: none; }
+  .seg button {
+    border: 0; background: transparent; cursor: pointer; border-radius: 999px;
+    padding: 5px 10px; font-size: 12px; font-weight: 600; color: var(--muted);
+  }
+  .seg button[aria-pressed="true"] { background: var(--bg); color: var(--text); box-shadow: var(--shadow); }
+
+  /* Range */
+  .range { display: flex; align-items: center; gap: 10px; }
+  .range input { flex: 1; accent-color: var(--red); }
+  .range output {
+    min-width: 28px; text-align: center; font-weight: 700;
+    padding: 2px 6px; border-radius: 8px; background: var(--surface-2);
+  }
+
+  .settings-foot {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 4px 4px 2px; color: var(--muted); font-size: 11px;
+  }
+  .link { border: 0; background: none; cursor: pointer; color: var(--muted); font-size: 12px; font-weight: 600; text-decoration: underline; }
+  .link:hover { color: var(--text); }
+  #saved { opacity: 0; transition: opacity .2s ease; color: var(--green); font-weight: 600; }
+  #saved.on { opacity: 1; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="logo" aria-hidden="true">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12"/><path d="m6 11 6 6 6-6"/><path d="M5 21h14"/></svg>
+    </div>
+    <div class="title">
+      <h1>Pinterest Downloader</h1>
+      <small id="version"></small>
+    </div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tabMedia" aria-selected="true" aria-controls="mediaView">
+      Media <span class="pill" id="count">0</span>
+    </button>
+    <button role="tab" id="tabSettings" aria-selected="false" aria-controls="settingsView">Settings</button>
+  </div>
+
+  <!-- ===== Media ===== -->
+  <section class="view" id="mediaView" role="tabpanel">
+    <div class="actions">
+      <button class="btn" id="refresh">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
+        Refresh
+      </button>
+      <button class="btn primary" id="downloadAll" disabled>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12"/><path d="m6 11 6 6 6-6"/><path d="M5 21h14"/></svg>
+        Download all
+      </button>
+    </div>
+    <div id="boardBar">
+      <button class="btn" id="boardAll" title="Collect every pin of this board and download them all">Download whole board</button>
+    </div>
+    <div id="status">Loading…</div>
+    <div id="grid"></div>
+  </section>
+
+  <!-- ===== Settings (saved automatically) ===== -->
+  <section class="view" id="settingsView" role="tabpanel" hidden>
+    <div class="group">
+      <h2>Downloads</h2>
+      <div class="panel">
+        <div class="row stack">
+          <div class="label"><b>Save to folder</b><span>Inside your Downloads folder. Use / for sub-folders.</span></div>
+          <label class="path"><span>Downloads /</span><input type="text" id="setFolder" spellcheck="false" placeholder="pinterest" /></label>
+        </div>
+        <div class="row">
+          <div class="label"><b>Ask where to save</b><span>Show the save dialog for every file</span></div>
+          <label class="switch"><input type="checkbox" id="setSaveAs" /><i></i></label>
+        </div>
+        <div class="row">
+          <div class="label"><b>If the file exists</b><span>Same name in the same folder</span></div>
+          <div class="seg" id="setConflict">
+            <button type="button" data-value="uniquify">Keep both</button>
+            <button type="button" data-value="overwrite">Replace</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <h2>Boards</h2>
+      <div class="panel">
+        <div class="row">
+          <div class="label"><b>“Download all” on boards</b><span>In the board's top bar and ••• menu</span></div>
+          <label class="switch"><input type="checkbox" id="setBoardBtn" /><i></i></label>
+        </div>
+        <div class="row">
+          <div class="label"><b>One folder per board</b><span>Saves into folder / user-board</span></div>
+          <label class="switch"><input type="checkbox" id="setBoardFolder" /><i></i></label>
+        </div>
+        <div class="row stack">
+          <div class="label"><b>Parallel downloads</b><span>Photos at a time; videos always go one by one</span></div>
+          <div class="range"><input type="range" id="setMax" min="1" max="8" step="1" /><output id="setMaxOut">4</output></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <h2>On-page buttons</h2>
+      <div class="panel">
+        <div class="row">
+          <div class="label"><b>Button on feed pins</b><span>Appears when you hover a pin</span></div>
+          <label class="switch"><input type="checkbox" id="setHover" /><i></i></label>
+        </div>
+        <div class="row">
+          <div class="label"><b>Button on pin pages</b><span>Under the back arrow of an opened pin</span></div>
+          <label class="switch"><input type="checkbox" id="setPinBtn" /><i></i></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <h2>Notifications</h2>
+      <div class="panel">
+        <div class="row">
+          <div class="label"><b>Progress messages</b><span>“Download started” etc. Errors are always shown.</span></div>
+          <label class="switch"><input type="checkbox" id="setToasts" /><i></i></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-foot">
+      <button type="button" class="link" id="resetSettings">Reset to defaults</button>
+      <span id="saved">✓ Saved</span>
+    </div>
+  </section>
+
+  <script src="popup.js"></script>
+</body>
+</html>
