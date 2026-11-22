@@ -1,4 +1,4 @@
-# 📌 Pinterest Downloader (Chrome Extension)
+#  Pinterest Downloader (Chrome Extension)
 
 Downloads Pinterest photos and videos in high quality.
 
@@ -38,7 +38,7 @@ Downloads Pinterest photos and videos in high quality.
 - On the pin page, if video download failed, the cover image was silently downloaded instead → now shows an error.
 - Hover button, once removed by React, was never re-added.
 - Pin page button: if no media found, scanning every 300 ms forever and jumping to a random place on scroll fixed.
-- Video result failed but hover button still showed ✅.
+- Video result failed but hover button still showed .
 - 'page' video record got stuck on the first video during SPA navigation.
 - Popup: fake URLs containing `pinterest.com` were accepted; counter wasn't reset.
 - Other: comments with broken characters cleaned; `fetch(new URL())`/`Request` formats are caught by the hook; list only includes `i.pinimg.com` images.
